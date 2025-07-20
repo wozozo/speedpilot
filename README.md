@@ -19,8 +19,8 @@ A Chrome extension that enhances video playback control across any website throu
 
 ## Default Keyboard Shortcuts
 
-- `A` - Decrease playback speed
-- `S` - Increase playback speed
+- `S` - Decrease playback speed
+- `D` - Increase playback speed
 - `Z` - Skip backward
 - `X` - Skip forward
 

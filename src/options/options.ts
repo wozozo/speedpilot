@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type Settings } from "../types/settings";
+import { DEFAULT_SETTINGS, type Settings } from "../types/settings.js";
 
 class OptionsController {
   private currentDisabledSites: string[] = [];

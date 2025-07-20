@@ -19,8 +19,8 @@ export const DEFAULT_SETTINGS: Settings = {
   speedIncrement: 0.25,
   skipSeconds: 10,
   shortcuts: {
-    decreaseSpeed: "a",
-    increaseSpeed: "s",
+    decreaseSpeed: "s",
+    increaseSpeed: "d",
     skipBackward: "z",
     skipForward: "x",
   },
