@@ -1,0 +1,17 @@
+{
+  "name": "speedpilot",
+  "version": "1.0.0",
+  "description": "YouTube video control Chrome extension with keyboard shortcuts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/chrome": "^0.0.254",
+    "typescript": "^5.3.3"
+  }
+}

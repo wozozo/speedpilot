@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeedPilot Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SpeedPilot Settings</h1>
+      <p class="auto-save-note">Settings are automatically saved when you change them</p>
+    </header>
+    
+    <div class="settings-section">
+      <h2>Basic Settings</h2>
+      
+      <div class="setting-group">
+        <label for="speed-increment">Speed Increment</label>
+        <div class="input-group">
+          <input type="number" id="speed-increment" min="0.05" max="1" step="0.05" value="0.25">
+          <span class="unit">x</span>
+        </div>
+      </div>
+      
+      <div class="setting-group">
+        <label for="skip-seconds">Skip Seconds</label>
+        <div class="input-group">
+          <input type="number" id="skip-seconds" min="1" max="60" step="1" value="10">
+          <span class="unit">s</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>Display Settings</h2>
+      
+      <div class="setting-group">
+        <label for="hide-controller">Hide Controller</label>
+        <input type="checkbox" id="hide-controller" class="toggle">
+        <span class="help-text">Hide the speed indicator overlay</span>
+      </div>
+      
+      <div class="setting-group">
+        <label for="controller-opacity">Controller Opacity</label>
+        <div class="input-group">
+          <input type="range" id="controller-opacity" min="0.1" max="1" step="0.1" value="0.5">
+          <span id="opacity-value" class="value">0.5</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>Playback Settings</h2>
+      
+      <div class="setting-group">
+        <label for="force-last-speed">Force Last Saved Speed</label>
+        <input type="checkbox" id="force-last-speed" class="toggle">
+        <span class="help-text">Always start videos with the last used speed</span>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>Keyboard Shortcuts</h2>
+      
+      <div class="shortcut-grid">
+        <div class="shortcut-config">
+          <label>Decrease speed</label>
+          <input type="text" id="key-decrease-speed" maxlength="1" class="key-input">
+        </div>
+        <div class="shortcut-config">
+          <label>Increase speed</label>
+          <input type="text" id="key-increase-speed" maxlength="1" class="key-input">
+        </div>
+        <div class="shortcut-config">
+          <label>Skip backward</label>
+          <input type="text" id="key-skip-backward" maxlength="1" class="key-input">
+        </div>
+        <div class="shortcut-config">
+          <label>Skip forward</label>
+          <input type="text" id="key-skip-forward" maxlength="1" class="key-input">
+        </div>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>Disabled Sites</h2>
+      <p class="help-text">Enter regular expressions (one per line) to disable the extension on specific sites.</p>
+      <textarea id="disabled-sites" rows="5" placeholder="Example:&#10;.*\.netflix\.com.*&#10;.*hulu.*"></textarea>
+    </div>
+    
+    <div class="actions">
+      <button id="save-button" class="primary">Save Disabled Sites</button>
+      <button id="reset-button" class="secondary">Reset to Defaults</button>
+    </div>
+  </div>
+  
+  <div id="status" class="status"></div>
+  
+  <script src="../../dist/options/options.js"></script>
+</body>
+</html>
