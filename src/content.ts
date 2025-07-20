@@ -126,6 +126,7 @@ class VideoController {
     if (!this.video || this.speedOverlay || this.settings.hideController) return;
 
     const overlay = document.createElement("div");
+    overlay.className = "speedpilot-overlay";
     overlay.style.cssText = `
       position: absolute;
       top: 10px;
@@ -142,8 +143,10 @@ class VideoController {
       opacity: ${this.settings.controllerOpacity};
     `;
 
-    const videoContainer = this.video.closest("div") || document.body;
-    videoContainer.style.position = "relative";
+    const videoContainer = this.video.parentElement || document.body;
+    if (videoContainer.style.position === "" || videoContainer.style.position === "static") {
+      videoContainer.style.position = "relative";
+    }
     videoContainer.appendChild(overlay);
 
     this.speedOverlay = {
@@ -225,10 +228,13 @@ class VideoController {
   private skip(seconds: number) {
     if (!this.video) return;
 
-    this.video.currentTime = Math.max(
-      0,
-      Math.min(this.video.duration, this.video.currentTime + seconds),
-    );
+    const duration = this.video.duration;
+    const currentTime = this.video.currentTime;
+
+    // Check for valid duration and currentTime
+    if (isNaN(duration) || isNaN(currentTime)) return;
+
+    this.video.currentTime = Math.max(0, Math.min(duration, currentTime + seconds));
   }
 
   public destroy() {
@@ -241,6 +247,12 @@ class VideoController {
   }
 }
 
-console.log("SpeedPilot: Content script loaded");
-const _controller = new VideoController();
-console.log("SpeedPilot: Controller created");
+// Export for testing
+export { VideoController };
+
+// Only run in production (not in test environment)
+if (typeof process === "undefined" || process.env.NODE_ENV !== "test") {
+  console.log("SpeedPilot: Content script loaded");
+  const _controller = new VideoController();
+  console.log("SpeedPilot: Controller created");
+}
