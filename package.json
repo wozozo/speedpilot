@@ -8,7 +8,8 @@
     "format": "biome format --write .",
     "lint": "biome lint .",
     "check": "biome check .",
-    "package": "./scripts/build-extension.sh"
+    "package": "./scripts/build-extension.sh",
+    "format2": "npm run format && npm run lint && npm run check"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",

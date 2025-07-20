@@ -1,4 +1,37 @@
-import { DEFAULT_SETTINGS, type Settings } from "./types/settings";
+// Content script must be self-contained due to Chrome Extension limitations
+// Duplicate type definitions from settings.ts to avoid ES module imports
+
+interface KeyboardShortcuts {
+  decreaseSpeed: string;
+  increaseSpeed: string;
+  skipBackward: string;
+  skipForward: string;
+}
+
+interface Settings {
+  speedIncrement: number;
+  skipSeconds: number;
+  shortcuts: KeyboardShortcuts;
+  hideController: boolean;
+  forceLastSavedSpeed: boolean;
+  controllerOpacity: number;
+  disabledSites: string[];
+}
+
+const DEFAULT_SETTINGS: Settings = {
+  speedIncrement: 0.25,
+  skipSeconds: 10,
+  shortcuts: {
+    decreaseSpeed: "a",
+    increaseSpeed: "s",
+    skipBackward: "z",
+    skipForward: "x",
+  },
+  hideController: false,
+  forceLastSavedSpeed: false,
+  controllerOpacity: 0.5,
+  disabledSites: [],
+};
 
 interface SpeedOverlay {
   element: HTMLDivElement;
