@@ -1,34 +1,4 @@
-interface KeyboardShortcuts {
-  decreaseSpeed: string;
-  increaseSpeed: string;
-  skipBackward: string;
-  skipForward: string;
-}
-
-interface Settings {
-  speedIncrement: number;
-  skipSeconds: number;
-  shortcuts: KeyboardShortcuts;
-  hideController: boolean;
-  forceLastSavedSpeed: boolean;
-  controllerOpacity: number;
-  disabledSites: string[];
-}
-
-const DEFAULT_SETTINGS: Settings = {
-  speedIncrement: 0.25,
-  skipSeconds: 10,
-  shortcuts: {
-    decreaseSpeed: "a",
-    increaseSpeed: "s",
-    skipBackward: "z",
-    skipForward: "x",
-  },
-  hideController: false,
-  forceLastSavedSpeed: false,
-  controllerOpacity: 0.5,
-  disabledSites: [],
-};
+import { DEFAULT_SETTINGS, type Settings } from "./types/settings";
 
 interface SpeedOverlay {
   element: HTMLDivElement;
@@ -69,7 +39,7 @@ class VideoController {
       try {
         const regex = new RegExp(pattern);
         return regex.test(currentUrl);
-      } catch (e) {
+      } catch (_e) {
         console.error("SpeedPilot: Invalid regex pattern:", pattern);
         return false;
       }
@@ -239,5 +209,5 @@ class VideoController {
 }
 
 console.log("SpeedPilot: Content script loaded");
-const controller = new VideoController();
+const _controller = new VideoController();
 console.log("SpeedPilot: Controller created");
