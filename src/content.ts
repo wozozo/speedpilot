@@ -153,7 +153,7 @@ class VideoController {
     if (this.settings.forceLastSavedSpeed && this.video) {
       const savedSpeed = localStorage.getItem("speedpilot_last_speed");
       if (savedSpeed) {
-        this.video.playbackRate = parseFloat(savedSpeed);
+        this.video.playbackRate = Number.parseFloat(savedSpeed);
       }
     }
   }

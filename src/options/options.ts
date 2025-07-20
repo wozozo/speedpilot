@@ -133,7 +133,7 @@ class OptionsController {
     this.elements.controllerOpacity.addEventListener("change", () => this.autoSave());
 
     // Keyboard shortcut inputs
-    Object.values(this.elements.shortcuts).forEach((input) => {
+    for (const input of Object.values(this.elements.shortcuts)) {
       input.addEventListener("keydown", (e) => {
         e.preventDefault();
         const key = e.key.toLowerCase();
@@ -142,7 +142,7 @@ class OptionsController {
         }
       });
       input.addEventListener("blur", () => this.autoSave());
-    });
+    }
   }
 
   private async autoSave() {
@@ -230,7 +230,7 @@ class OptionsController {
 
   private statusTimeout?: number;
 
-  private showStatus(message: string, success: boolean, duration: number = 3000) {
+  private showStatus(message: string, success: boolean, duration = 3000) {
     // Clear any existing timeout
     if (this.statusTimeout) {
       clearTimeout(this.statusTimeout);
