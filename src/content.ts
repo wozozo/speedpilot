@@ -232,7 +232,7 @@ class VideoController {
     const currentTime = this.video.currentTime;
 
     // Check for valid duration and currentTime
-    if (isNaN(duration) || isNaN(currentTime)) return;
+    if (Number.isNaN(duration) || Number.isNaN(currentTime)) return;
 
     this.video.currentTime = Math.max(0, Math.min(duration, currentTime + seconds));
   }

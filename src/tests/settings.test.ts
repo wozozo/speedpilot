@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { KeyboardShortcuts, Settings } from "../types/settings";
 import { DEFAULT_SETTINGS } from "../types/settings";
-import type { Settings, KeyboardShortcuts } from "../types/settings";
 
 describe("Settings", () => {
   describe("DEFAULT_SETTINGS", () => {
@@ -49,7 +49,7 @@ describe("Settings", () => {
         hideController: true,
       };
 
-      mockGet.mockImplementation((keys, callback) => {
+      mockGet.mockImplementation((_keys, callback) => {
         const result = { settings: testSettings };
         if (callback) {
           callback(result);

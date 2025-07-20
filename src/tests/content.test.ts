@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("VideoController", () => {
   let videoElement: HTMLVideoElement;
-  let VideoController: any;
-  let controller: any;
+  let VideoController: typeof import("../content").VideoController;
+  let controller: InstanceType<typeof import("../content").VideoController>;
 
   beforeEach(async () => {
     // Reset modules before each test
@@ -26,12 +25,12 @@ describe("VideoController", () => {
 
     // Import fresh module
     const contentModule = await import("../content");
-    VideoController = (contentModule as any).VideoController;
+    VideoController = contentModule.VideoController;
   });
 
   afterEach(() => {
     // Clean up any controller instances
-    if (controller && controller.destroy) {
+    if (controller?.destroy) {
       controller.destroy();
     }
     vi.resetModules();
@@ -49,7 +48,7 @@ describe("VideoController", () => {
 
     it("should load settings from chrome storage", async () => {
       const mockGet = vi.mocked(chrome.storage.sync.get);
-      mockGet.mockImplementation((keys, callback) => {
+      mockGet.mockImplementation((_keys, callback) => {
         const settings = {
           settings: {
             speedIncrement: 0.5,
@@ -80,7 +79,7 @@ describe("VideoController", () => {
 
     it("should not initialize if site is disabled", async () => {
       const mockGet = vi.mocked(chrome.storage.sync.get);
-      mockGet.mockImplementation((keys, callback) => {
+      mockGet.mockImplementation((_keys, callback) => {
         const settings = {
           settings: {
             ...DEFAULT_SETTINGS,
@@ -188,10 +187,6 @@ describe("VideoController", () => {
       });
 
       // Mock duration to avoid NaN issues
-      const originalDuration = Object.getOwnPropertyDescriptor(
-        HTMLMediaElement.prototype,
-        "duration",
-      );
       Object.defineProperty(videoElement, "duration", {
         get: () => 100,
         configurable: true,
@@ -406,7 +401,7 @@ describe("VideoController", () => {
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const mockGet = vi.mocked(chrome.storage.sync.get);
-      mockGet.mockImplementationOnce((keys, callback) => {
+      mockGet.mockImplementationOnce((_keys, callback) => {
         const settings = {
           settings: {
             ...DEFAULT_SETTINGS,

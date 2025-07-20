@@ -4,7 +4,7 @@ Object.defineProperty(window, "chrome", {
   value: {
     storage: {
       sync: {
-        get: vi.fn((keys, callback) => {
+        get: vi.fn((_keys, callback) => {
           const defaultSettings = {
             settings: {
               speedIncrement: 0.25,
@@ -26,7 +26,7 @@ Object.defineProperty(window, "chrome", {
           }
           return Promise.resolve(defaultSettings);
         }),
-        set: vi.fn((items, callback) => {
+        set: vi.fn((_items, callback) => {
           if (callback) {
             callback();
           }
