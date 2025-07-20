@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "SpeedPilot",
+  "name": "SpeedPilot - Video Speed Controller",
+  "short_name": "SpeedPilot",
   "version": "1.0.0",
-  "description": "Control YouTube and other video playback with keyboard shortcuts",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": ["https://*.youtube.com/*", "https://youtube.com/*", "<all_urls>"],
+  "description": "Control video playback speed with customizable keyboard shortcuts. Works on YouTube, Netflix, and any HTML5 video.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -13,7 +19,15 @@
     }
   ],
   "action": {
-    "default_popup": "src/popup/popup.html"
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
+    "default_title": "SpeedPilot - Click to view shortcuts"
   },
-  "options_page": "src/options/options.html"
+  "options_page": "src/options/options.html",
+  "author": "wozozo",
+  "homepage_url": "https://github.com/wozozo/speedpilot"
 }
