@@ -52,20 +52,20 @@ class VideoController {
 
   private async init() {
     await this.loadSettings();
-    
+
     // Check if the current site is disabled
     if (this.isSiteDisabled()) {
       console.log("SpeedPilot: Extension is disabled on this site");
       return;
     }
-    
+
     this.setupVideoObserver();
     this.setupKeyboardListeners();
   }
-  
+
   private isSiteDisabled(): boolean {
     const currentUrl = window.location.href;
-    return this.settings.disabledSites.some(pattern => {
+    return this.settings.disabledSites.some((pattern) => {
       try {
         const regex = new RegExp(pattern);
         return regex.test(currentUrl);
@@ -148,7 +148,7 @@ class VideoController {
     };
 
     this.updateSpeedDisplay();
-    
+
     // If forceLastSavedSpeed is enabled, set the video speed
     if (this.settings.forceLastSavedSpeed && this.video) {
       const savedSpeed = localStorage.getItem("speedpilot_last_speed");
@@ -212,7 +212,7 @@ class VideoController {
     const newSpeed = Math.max(0.25, Math.min(4, this.video.playbackRate + delta));
     this.video.playbackRate = newSpeed;
     this.updateSpeedDisplay();
-    
+
     // Save the speed if forceLastSavedSpeed is enabled
     if (this.settings.forceLastSavedSpeed) {
       localStorage.setItem("speedpilot_last_speed", String(newSpeed));

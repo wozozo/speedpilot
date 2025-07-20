@@ -133,7 +133,7 @@ class OptionsController {
     this.elements.controllerOpacity.addEventListener("change", () => this.autoSave());
 
     // Keyboard shortcut inputs
-    Object.values(this.elements.shortcuts).forEach(input => {
+    Object.values(this.elements.shortcuts).forEach((input) => {
       input.addEventListener("keydown", (e) => {
         e.preventDefault();
         const key = e.key.toLowerCase();
@@ -147,16 +147,23 @@ class OptionsController {
 
   private async autoSave() {
     const settings: Settings = {
-      speedIncrement: Number.parseFloat(this.elements.speedIncrement.value) || DEFAULT_SETTINGS.speedIncrement,
+      speedIncrement:
+        Number.parseFloat(this.elements.speedIncrement.value) || DEFAULT_SETTINGS.speedIncrement,
       skipSeconds: Number.parseInt(this.elements.skipSeconds.value) || DEFAULT_SETTINGS.skipSeconds,
       hideController: this.elements.hideController.checked,
       forceLastSavedSpeed: this.elements.forceLastSpeed.checked,
-      controllerOpacity: Number.parseFloat(this.elements.controllerOpacity.value) || DEFAULT_SETTINGS.controllerOpacity,
+      controllerOpacity:
+        Number.parseFloat(this.elements.controllerOpacity.value) ||
+        DEFAULT_SETTINGS.controllerOpacity,
       shortcuts: {
-        decreaseSpeed: this.elements.shortcuts.decreaseSpeed.value || DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
-        increaseSpeed: this.elements.shortcuts.increaseSpeed.value || DEFAULT_SETTINGS.shortcuts.increaseSpeed,
-        skipBackward: this.elements.shortcuts.skipBackward.value || DEFAULT_SETTINGS.shortcuts.skipBackward,
-        skipForward: this.elements.shortcuts.skipForward.value || DEFAULT_SETTINGS.shortcuts.skipForward,
+        decreaseSpeed:
+          this.elements.shortcuts.decreaseSpeed.value || DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
+        increaseSpeed:
+          this.elements.shortcuts.increaseSpeed.value || DEFAULT_SETTINGS.shortcuts.increaseSpeed,
+        skipBackward:
+          this.elements.shortcuts.skipBackward.value || DEFAULT_SETTINGS.shortcuts.skipBackward,
+        skipForward:
+          this.elements.shortcuts.skipForward.value || DEFAULT_SETTINGS.shortcuts.skipForward,
       },
       // Keep current disabled sites (don't auto-save these)
       disabledSites: this.currentDisabledSites || [],
@@ -174,21 +181,28 @@ class OptionsController {
   private async saveSettings() {
     // This method now only saves disabled sites
     const settings: Settings = {
-      speedIncrement: Number.parseFloat(this.elements.speedIncrement.value) || DEFAULT_SETTINGS.speedIncrement,
+      speedIncrement:
+        Number.parseFloat(this.elements.speedIncrement.value) || DEFAULT_SETTINGS.speedIncrement,
       skipSeconds: Number.parseInt(this.elements.skipSeconds.value) || DEFAULT_SETTINGS.skipSeconds,
       hideController: this.elements.hideController.checked,
       forceLastSavedSpeed: this.elements.forceLastSpeed.checked,
-      controllerOpacity: Number.parseFloat(this.elements.controllerOpacity.value) || DEFAULT_SETTINGS.controllerOpacity,
+      controllerOpacity:
+        Number.parseFloat(this.elements.controllerOpacity.value) ||
+        DEFAULT_SETTINGS.controllerOpacity,
       shortcuts: {
-        decreaseSpeed: this.elements.shortcuts.decreaseSpeed.value || DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
-        increaseSpeed: this.elements.shortcuts.increaseSpeed.value || DEFAULT_SETTINGS.shortcuts.increaseSpeed,
-        skipBackward: this.elements.shortcuts.skipBackward.value || DEFAULT_SETTINGS.shortcuts.skipBackward,
-        skipForward: this.elements.shortcuts.skipForward.value || DEFAULT_SETTINGS.shortcuts.skipForward,
+        decreaseSpeed:
+          this.elements.shortcuts.decreaseSpeed.value || DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
+        increaseSpeed:
+          this.elements.shortcuts.increaseSpeed.value || DEFAULT_SETTINGS.shortcuts.increaseSpeed,
+        skipBackward:
+          this.elements.shortcuts.skipBackward.value || DEFAULT_SETTINGS.shortcuts.skipBackward,
+        skipForward:
+          this.elements.shortcuts.skipForward.value || DEFAULT_SETTINGS.shortcuts.skipForward,
       },
       disabledSites: this.elements.disabledSites.value
         .split("\n")
-        .map(line => line.trim())
-        .filter(line => line.length > 0),
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0),
     };
 
     try {
