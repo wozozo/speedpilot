@@ -270,6 +270,43 @@ describe("VideoController", () => {
       controller = new VideoController();
     });
 
+    it("should detect initial playback rate", async () => {
+      // Set video's default playback rate before controller initialization
+      videoElement.playbackRate = 1.5;
+
+      controller = new VideoController();
+
+      // Wait for video to be detected
+      await vi.waitFor(() => {
+        const overlay = document.querySelector(".speedpilot-overlay");
+        expect(overlay).toBeTruthy();
+      });
+
+      // Fast forward to allow detectInitialPlaybackRate timeout
+      vi.advanceTimersByTime(600);
+
+      // Overlay should show the initial speed
+      const overlay = document.querySelector(".speedpilot-overlay");
+      expect(overlay?.textContent).toBe("1.5x");
+    });
+
+    it("should update overlay when video rate changes externally", async () => {
+      // Wait for video to be detected
+      await vi.waitFor(() => {
+        const overlay = document.querySelector(".speedpilot-overlay");
+        expect(overlay).toBeTruthy();
+      });
+
+      // Simulate external speed change (e.g., from video player controls)
+      videoElement.playbackRate = 2;
+      videoElement.dispatchEvent(new Event("ratechange"));
+
+      await vi.waitFor(() => {
+        const overlay = document.querySelector(".speedpilot-overlay");
+        expect(overlay?.textContent).toBe("2x");
+      });
+    });
+
     it("should show speed overlay when speed changes", async () => {
       // Wait for video to be detected and overlay created
       await vi.waitFor(() => {

@@ -104,6 +104,7 @@ class VideoController {
       if (videos.length > 0) {
         this.video = videos[0] as HTMLVideoElement;
         console.log("SpeedPilot: Video element attached");
+        this.detectInitialPlaybackRate();
         this.createSpeedOverlay();
       }
     };
@@ -120,6 +121,27 @@ class VideoController {
       childList: true,
       subtree: true,
     });
+  }
+
+  private detectInitialPlaybackRate() {
+    if (!this.video) return;
+
+    // Listen for playback rate changes
+    this.video.addEventListener("ratechange", () => {
+      if (this.speedOverlay) {
+        this.updateSpeedDisplay(false);
+      }
+    });
+
+    // Wait a bit for the video to load and apply any default speed
+    setTimeout(() => {
+      if (this.video && this.video.playbackRate !== 1) {
+        console.log("SpeedPilot: Detected initial playback rate:", this.video.playbackRate);
+        if (this.speedOverlay) {
+          this.updateSpeedDisplay(false);
+        }
+      }
+    }, 500);
   }
 
   private createSpeedOverlay() {
@@ -153,34 +175,37 @@ class VideoController {
       element: overlay,
     };
 
-    this.updateSpeedDisplay();
+    this.updateSpeedDisplay(false);
 
     // If forceLastSavedSpeed is enabled, set the video speed
     if (this.settings.forceLastSavedSpeed && this.video) {
       const savedSpeed = localStorage.getItem("speedpilot_last_speed");
       if (savedSpeed) {
         this.video.playbackRate = Number.parseFloat(savedSpeed);
+        this.updateSpeedDisplay(false);
       }
     }
   }
 
-  private updateSpeedDisplay() {
+  private updateSpeedDisplay(showImmediately = true) {
     if (!this.speedOverlay || !this.video) return;
 
     const speed = this.video.playbackRate;
     this.speedOverlay.element.textContent = `${speed}x`;
 
-    this.speedOverlay.element.style.opacity = "1";
+    if (showImmediately) {
+      this.speedOverlay.element.style.opacity = "1";
 
-    if (this.speedOverlay.timeoutId) {
-      clearTimeout(this.speedOverlay.timeoutId);
-    }
-
-    this.speedOverlay.timeoutId = window.setTimeout(() => {
-      if (this.speedOverlay) {
-        this.speedOverlay.element.style.opacity = String(this.settings.controllerOpacity);
+      if (this.speedOverlay.timeoutId) {
+        clearTimeout(this.speedOverlay.timeoutId);
       }
-    }, 2000);
+
+      this.speedOverlay.timeoutId = window.setTimeout(() => {
+        if (this.speedOverlay) {
+          this.speedOverlay.element.style.opacity = String(this.settings.controllerOpacity);
+        }
+      }, 2000);
+    }
   }
 
   private setupKeyboardListeners() {
