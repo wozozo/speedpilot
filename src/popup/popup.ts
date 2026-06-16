@@ -29,7 +29,7 @@ class PopupController {
   private async loadShortcuts() {
     try {
       const data = await chrome.storage.sync.get("settings");
-      const settings: Settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+      const settings: Settings = { ...DEFAULT_SETTINGS, ...data.settings };
 
       this.shortcutElements.decrease.textContent = settings.shortcuts.decreaseSpeed.toUpperCase();
       this.shortcutElements.increase.textContent = settings.shortcuts.increaseSpeed.toUpperCase();

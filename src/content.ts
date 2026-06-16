@@ -22,8 +22,8 @@ const DEFAULT_SETTINGS: Settings = {
   speedIncrement: 0.25,
   skipSeconds: 10,
   shortcuts: {
-    decreaseSpeed: "a",
-    increaseSpeed: "s",
+    decreaseSpeed: "s",
+    increaseSpeed: "d",
     skipBackward: "z",
     skipForward: "x",
   },
@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS: Settings = {
 interface SpeedOverlay {
   element: HTMLDivElement;
   timeoutId?: number;
+  checkIntervalId?: number;
 }
 
 interface StorageData {
@@ -72,7 +73,7 @@ class VideoController {
       try {
         const regex = new RegExp(pattern);
         return regex.test(currentUrl);
-      } catch (_e) {
+      } catch {
         console.error("SpeedPilot: Invalid regex pattern:", pattern);
         return false;
       }
@@ -115,6 +116,15 @@ class VideoController {
       if (!this.video || !document.contains(this.video)) {
         observeVideos();
       }
+
+      // Check if overlay was removed and recreate it
+      if (this.video && this.speedOverlay) {
+        if (!document.contains(this.speedOverlay.element)) {
+          console.log("SpeedPilot: Overlay was removed, recreating...");
+          this.speedOverlay = null;
+          this.createSpeedOverlay();
+        }
+      }
     });
 
     this.observer.observe(document.body, {
@@ -130,6 +140,15 @@ class VideoController {
     this.video.addEventListener("ratechange", () => {
       if (this.speedOverlay) {
         this.updateSpeedDisplay(false);
+      }
+    });
+
+    // Listen for video play event to ensure overlay exists
+    this.video.addEventListener("play", () => {
+      if (!this.speedOverlay || !document.contains(this.speedOverlay.element)) {
+        console.log("SpeedPilot: Recreating overlay on play event");
+        this.speedOverlay = null;
+        this.createSpeedOverlay();
       }
     });
 
@@ -160,19 +179,52 @@ class VideoController {
       font-family: Arial, sans-serif;
       font-size: 14px;
       pointer-events: none;
-      z-index: 9999;
       transition: opacity 0.3s;
       opacity: ${this.settings.controllerOpacity};
+      width: auto;
+      height: auto;
+      max-width: 100px;
+      z-index: 2147483647;
+      display: block !important;
+      visibility: visible !important;
     `;
 
-    const videoContainer = this.video.parentElement || document.body;
-    if (videoContainer.style.position === "" || videoContainer.style.position === "static") {
-      videoContainer.style.position = "relative";
+    // Find parent with position relative/absolute/fixed to anchor the overlay
+    let parentWithPosition = this.video.parentElement;
+    while (parentWithPosition) {
+      const position = window.getComputedStyle(parentWithPosition).position;
+      if (position === "relative" || position === "absolute" || position === "fixed") {
+        break;
+      }
+      parentWithPosition = parentWithPosition.parentElement;
     }
-    videoContainer.appendChild(overlay);
+
+    // If no positioned parent found, use video's direct parent and make it relative
+    if (!parentWithPosition) {
+      parentWithPosition = this.video.parentElement;
+      if (parentWithPosition) {
+        parentWithPosition.style.position = "relative";
+      }
+    }
+
+    let checkIntervalId: number | undefined;
+    if (parentWithPosition) {
+      parentWithPosition.appendChild(overlay);
+
+      // Periodically check if overlay still exists (for aggressive DOM cleaners)
+      checkIntervalId = window.setInterval(() => {
+        if (!document.contains(overlay)) {
+          console.log("SpeedPilot: Overlay removed by site, recreating...");
+          clearInterval(checkIntervalId);
+          this.speedOverlay = null;
+          this.createSpeedOverlay();
+        }
+      }, 1000);
+    }
 
     this.speedOverlay = {
       element: overlay,
+      checkIntervalId,
     };
 
     this.updateSpeedDisplay(false);
@@ -259,7 +311,19 @@ class VideoController {
     // Check for valid duration and currentTime
     if (Number.isNaN(duration) || Number.isNaN(currentTime)) return;
 
-    this.video.currentTime = Math.max(0, Math.min(duration, currentTime + seconds));
+    const targetTime = Math.max(0, Math.min(duration, currentTime + seconds));
+
+    // Netflix uses MSE with a custom playback engine; writing video.currentTime
+    // directly corrupts its state and triggers an error page. Seek through
+    // Netflix's own player API via the MAIN-world helper instead.
+    if (location.hostname.endsWith("netflix.com")) {
+      window.dispatchEvent(
+        new CustomEvent("speedpilot-netflix-seek", { detail: { timeMs: targetTime * 1000 } }),
+      );
+      return;
+    }
+
+    this.video.currentTime = targetTime;
   }
 
   public destroy() {
@@ -267,6 +331,12 @@ class VideoController {
       this.observer.disconnect();
     }
     if (this.speedOverlay) {
+      if (this.speedOverlay.checkIntervalId) {
+        clearInterval(this.speedOverlay.checkIntervalId);
+      }
+      if (this.speedOverlay.timeoutId) {
+        clearTimeout(this.speedOverlay.timeoutId);
+      }
       this.speedOverlay.element.remove();
     }
   }

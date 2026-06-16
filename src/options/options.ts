@@ -52,7 +52,7 @@ class OptionsController {
   private async loadSettings() {
     try {
       const data = await chrome.storage.sync.get("settings");
-      const settings: Settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
+      const settings: Settings = { ...DEFAULT_SETTINGS, ...data.settings };
 
       // Basic settings
       this.elements.speedIncrement.value = settings.speedIncrement.toString();

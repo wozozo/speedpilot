@@ -16,6 +16,12 @@
       "matches": ["<all_urls>"],
       "js": ["dist/content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*.netflix.com/*"],
+      "js": ["dist/netflix-seek.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
     }
   ],
   "action": {

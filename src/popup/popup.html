@@ -1,39 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpeedPilot</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <div class="container">
-    <div class="logo">⚡</div>
-    <h1>SpeedPilot</h1>
-    
-    <div class="quick-shortcuts">
-      <h2>Quick Reference</h2>
-      <div class="shortcut">
-        <kbd id="key-decrease">A</kbd> Decrease speed
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpeedPilot</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="popup-header">
+        <img class="app-icon" src="../../icons/icon-48.png" alt="" />
+        <div>
+          <h1>SpeedPilot</h1>
+        </div>
+      </header>
+
+      <div class="quick-shortcuts">
+        <h2>Quick Reference</h2>
+        <div class="shortcut"><kbd id="key-decrease">A</kbd> Decrease speed</div>
+        <div class="shortcut"><kbd id="key-increase">S</kbd> Increase speed</div>
+        <div class="shortcut"><kbd id="key-backward">Z</kbd> Skip backward</div>
+        <div class="shortcut"><kbd id="key-forward">X</kbd> Skip forward</div>
       </div>
-      <div class="shortcut">
-        <kbd id="key-increase">S</kbd> Increase speed
-      </div>
-      <div class="shortcut">
-        <kbd id="key-backward">Z</kbd> Skip backward
-      </div>
-      <div class="shortcut">
-        <kbd id="key-forward">X</kbd> Skip forward
-      </div>
+
+      <button id="open-settings">Open Settings</button>
+
+      <div class="footer">Version <span class="version">1.0.0</span></div>
     </div>
-    
-    <button id="open-settings">Open Settings</button>
-    
-    <div class="footer">
-      Version <span class="version">1.0.0</span>
-    </div>
-  </div>
-  
-  <script type="module" src="../../dist/popup/popup.js"></script>
-</body>
+
+    <script type="module" src="../../dist/popup/popup.js"></script>
+  </body>
 </html>

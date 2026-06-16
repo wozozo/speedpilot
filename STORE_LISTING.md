@@ -27,8 +27,8 @@ SpeedPilot gives you complete control over video playback speed using customizab
 ✅ **Clean Interface** - Minimal, distraction-free design
 
 ### Default Shortcuts:
-• A - Decrease speed
-• S - Increase speed  
+• S - Decrease speed
+• D - Increase speed
 • Z - Skip backward 10 seconds
 • X - Skip forward 10 seconds
 
@@ -57,7 +57,7 @@ All shortcuts can be customized in the options page!
 
 ## Screenshots Required
 
-1. **Main Screenshot** (1280x800 or 640x400): 
+1. **Main Screenshot** (1280x800 or 640x400):
    - Show YouTube video with speed overlay visible
    - Demonstrate the extension in action
 
@@ -82,7 +82,7 @@ Create an image showing:
 - "Control Video Speed with Keyboard Shortcuts"
 - Key visual showing keyboard keys (A, S, Z, X)
 
-### Large Promotional Tile (920x680)  
+### Large Promotional Tile (920x680)
 Create an image showing:
 - Extension name and logo prominently
 - Visual demonstration of speed control (1x → 1.5x → 2x)

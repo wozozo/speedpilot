@@ -6,23 +6,26 @@
   "scripts": {
     "build": "tsc && sed -i '' '/export.*VideoController/d' dist/content.js",
     "watch": "tsc -w",
-    "format": "biome format --write .",
-    "lint": "biome lint .",
-    "check": "biome check .",
+    "format": "oxfmt src",
+    "format:check": "oxfmt --check src",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "check": "oxlint . && oxfmt --check src",
     "package": "./scripts/build-extension.sh",
-    "format2": "npm run format && npm run lint && npm run check",
+    "format2": "oxfmt src && oxlint . && oxfmt --check src",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.1.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/chrome": "^0.0.254",
     "@vitest/ui": "^3.2.4",
     "happy-dom": "^18.0.1",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
     "typescript": "^5.3.3",
     "vitest": "^3.2.4"
   }
