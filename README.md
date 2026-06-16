@@ -1,6 +1,10 @@
-# SpeedPilot
+<div align="center">
+  <img src="icons/icon-128.png" alt="SpeedPilot Icon" width="128" height="128">
 
-Chrome extension for controlling HTML5 video playback with keyboard shortcuts.
+  # SpeedPilot
+
+  Chrome extension for controlling HTML5 video playback with keyboard shortcuts.
+</div>
 
 SpeedPilot works on YouTube, Netflix, and other sites that use standard video elements. It adds simple shortcuts for changing playback speed and skipping through videos, plus an options page for customizing behavior.
 
