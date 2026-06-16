@@ -4,7 +4,7 @@
   "description": "Video Speed Control Chrome Extension",
   "private": true,
   "scripts": {
-    "build": "tsc && sed -i '' '/export.*VideoController/d' dist/content.js",
+    "build": "tsc && node -e \"const fs = require('node:fs'); const file = 'dist/content.js'; const js = fs.readFileSync(file, 'utf8').replace(/\\nexport \\{ VideoController \\};\\n/, '\\n'); fs.writeFileSync(file, js);\"",
     "watch": "tsc -w",
     "format": "oxfmt src",
     "format:check": "oxfmt --check src",
