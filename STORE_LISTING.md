@@ -1,113 +1,98 @@
-# Chrome Web Store Listing Information
+# Chrome Web Store Listing
 
 ## Basic Information
 
-**Name**: SpeedPilot - Video Speed Controller
+Name: SpeedPilot - Video Speed Controller
 
-**Category**: Productivity
+Summary: Control HTML5 video speed and seeking with customizable keyboard shortcuts.
 
-**Language**: English
+Category: Productivity
 
-## Description (Short - 132 characters max)
+Language: English
 
-Control video playback speed with customizable keyboard shortcuts. Works on YouTube, Netflix, and any HTML5 video.
+Visibility: Public
 
-## Description (Detailed)
+Support URL: https://github.com/wozozo/speedpilot/issues
 
-SpeedPilot gives you complete control over video playback speed using customizable keyboard shortcuts. Perfect for watching tutorials, lectures, or any video content at your preferred pace.
+Homepage URL: https://github.com/wozozo/speedpilot
 
-### Key Features:
-✅ **Universal Video Support** - Works on YouTube, Netflix, Vimeo, and any website with HTML5 videos
-✅ **Customizable Shortcuts** - Set your own keyboard shortcuts for all controls
-✅ **Precise Speed Control** - Adjust playback speed in customizable increments (0.1x to 0.5x)
-✅ **Visual Speed Overlay** - See current speed with a sleek, unobtrusive display
-✅ **Skip Controls** - Jump forward or backward in 10-second intervals
-✅ **Per-Site Settings** - Disable the extension on specific websites using regex patterns
-✅ **Remember Speed** - Option to maintain your preferred speed across videos
-✅ **Clean Interface** - Minimal, distraction-free design
+Privacy Policy URL: Host `PRIVACY_POLICY.md` from the repository, for example with GitHub Pages.
 
-### Default Shortcuts:
-• S - Decrease speed
-• D - Increase speed
-• Z - Skip backward 10 seconds
-• X - Skip forward 10 seconds
+## Single Purpose
 
-All shortcuts can be customized in the options page!
+SpeedPilot lets users control HTML5 video playback speed and seeking with keyboard shortcuts.
 
-### Perfect For:
-- Students watching educational content
-- Developers watching coding tutorials
-- Anyone who wants to save time by watching videos faster
-- Language learners who need to slow down content
+## Detailed Description
 
-### Privacy First:
-- No data collection or tracking
-- All settings stored locally
-- No external connections
-- Open source on GitHub
+SpeedPilot adds simple keyboard controls for videos on YouTube, Netflix, and other sites that use HTML5 video.
 
-### How to Use:
-1. Click the extension icon to see current shortcuts
-2. Use keyboard shortcuts while watching any video
-3. Right-click the icon and select "Options" to customize settings
+Use it to speed up lectures, slow down detailed tutorials, or jump forward and backward without reaching for the video player controls.
 
----
+Main features:
 
-**Support & Feedback**: https://github.com/wozozo/speedpilot/issues
+- Increase or decrease video playback speed
+- Skip forward or backward by a configurable number of seconds
+- Customize shortcut keys
+- Show a small optional speed overlay
+- Reuse the last selected speed when enabled
+- Disable the extension on selected sites with user-defined patterns
 
-## Screenshots Required
+Default shortcuts:
 
-1. **Main Screenshot** (1280x800 or 640x400):
-   - Show YouTube video with speed overlay visible
-   - Demonstrate the extension in action
+- S: Decrease speed
+- D: Increase speed
+- Z: Skip backward
+- X: Skip forward
 
-2. **Options Page** (1280x800 or 640x400):
-   - Show the settings/options interface
-   - Highlight customization features
+Privacy:
 
-3. **Popup View** (1280x800 or 640x400):
-   - Show the popup displaying current shortcuts
+- No analytics or tracking
+- No SpeedPilot-owned servers
+- Settings are stored with Chrome Storage Sync
+- Last selected speed is stored locally only when that option is enabled
 
-4. **Multiple Sites** (1280x800 or 640x400):
-   - Show the extension working on different video platforms
+Source code and support are available on GitHub:
+https://github.com/wozozo/speedpilot
 
-5. **Speed Overlay** (1280x800 or 640x400):
-   - Close-up of the speed indicator
+## Privacy Practices
 
-## Promotional Images
+Data collection: No user data is collected by the developer.
 
-### Small Promotional Tile (440x280)
-Create an image showing:
-- Extension name and logo
-- "Control Video Speed with Keyboard Shortcuts"
-- Key visual showing keyboard keys (A, S, Z, X)
+Data storage: User settings are stored with Chrome Storage Sync. If the user has Chrome sync enabled, Chrome may sync those settings through the user's Google account. SpeedPilot does not receive that data.
 
-### Large Promotional Tile (920x680)
-Create an image showing:
-- Extension name and logo prominently
-- Visual demonstration of speed control (1x → 1.5x → 2x)
-- Supported platforms logos (YouTube, Netflix, etc.)
-- Key features in bullet points
+Remote code: None.
 
-### Marquee Promotional Tile (1400x560)
-Create a banner showing:
-- "SpeedPilot - Take Control of Your Video Speed"
-- Visual keyboard shortcuts
-- Before/after speed comparison
-- Call to action: "Install Now"
+Third-party services: None.
 
-## Additional Store Information
+Ads or affiliate behavior: None.
 
-**Primary Category**: Productivity
-**Secondary Category**: Accessibility
+## Permission Justifications
 
-**Tags**: video, speed, control, youtube, netflix, playback, shortcuts, productivity, accessibility
+`storage`: Saves user settings such as shortcuts, speed increment, skip duration, overlay preference, and disabled-site patterns.
 
-**Why should users install your extension?**
-Save time and enhance your video watching experience by controlling playback speed with simple keyboard shortcuts. Whether you're a student, developer, or just want to consume content more efficiently, SpeedPilot puts you in control.
+`content_scripts.matches` on `<all_urls>`: Runs the video controller on pages that may contain HTML5 video. This is required for the extension's single purpose: controlling videos on arbitrary video websites. The script only interacts with video elements, keyboard events, and the optional SpeedPilot overlay.
 
-**Regions**: All regions
+Netflix MAIN-world content script: Runs only on `*.netflix.com` to call Netflix's own player seek API. This avoids corrupting Netflix playback state when users press the skip shortcuts.
 
-**Justification for Permissions**:
-- **storage**: To save user preferences and custom settings locally
-- **host_permissions (<all_urls>)**: To inject video control functionality on any website with video content
+## Store Assets
+
+Required:
+
+- Store icon: `icons/icon-128.png`
+- Screenshots: `store-assets/screenshot-*.png`
+- Small promotional tile: `store-assets/small-promo-440x280.png`
+
+Optional:
+
+- Marquee promotional tile: not included for the first release
+
+## Reviewer Test Instructions
+
+1. Load the extension package in Chrome.
+2. Open a page with an HTML5 video.
+3. Press `D` to increase speed and confirm the overlay updates.
+4. Press `S` to decrease speed.
+5. Press `X` and `Z` to seek forward and backward.
+6. Open the extension popup and confirm shortcut labels are shown.
+7. Open Options, change a shortcut or speed increment, and confirm it is saved.
+8. Add a disabled-site pattern for the current page, reload the page, and confirm shortcuts no longer affect the video.

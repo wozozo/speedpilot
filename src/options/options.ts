@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type Settings } from "../types/settings.js";
+import { DEFAULT_SETTINGS, normalizeSettings, type Settings } from "../types/settings.js";
 
 class OptionsController {
   private currentDisabledSites: string[] = [];
@@ -52,7 +52,7 @@ class OptionsController {
   private async loadSettings() {
     try {
       const data = await chrome.storage.sync.get("settings");
-      const settings: Settings = { ...DEFAULT_SETTINGS, ...data.settings };
+      const settings = normalizeSettings(data.settings);
 
       // Basic settings
       this.elements.speedIncrement.value = settings.speedIncrement.toString();
@@ -116,28 +116,7 @@ class OptionsController {
   }
 
   private async autoSave() {
-    const settings: Settings = {
-      speedIncrement:
-        Number.parseFloat(this.elements.speedIncrement.value) || DEFAULT_SETTINGS.speedIncrement,
-      skipSeconds: Number.parseInt(this.elements.skipSeconds.value) || DEFAULT_SETTINGS.skipSeconds,
-      hideController: this.elements.hideController.checked,
-      forceLastSavedSpeed: this.elements.forceLastSpeed.checked,
-      controllerOpacity:
-        Number.parseFloat(this.elements.controllerOpacity.value) ||
-        DEFAULT_SETTINGS.controllerOpacity,
-      shortcuts: {
-        decreaseSpeed:
-          this.elements.shortcuts.decreaseSpeed.value || DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
-        increaseSpeed:
-          this.elements.shortcuts.increaseSpeed.value || DEFAULT_SETTINGS.shortcuts.increaseSpeed,
-        skipBackward:
-          this.elements.shortcuts.skipBackward.value || DEFAULT_SETTINGS.shortcuts.skipBackward,
-        skipForward:
-          this.elements.shortcuts.skipForward.value || DEFAULT_SETTINGS.shortcuts.skipForward,
-      },
-      // Keep current disabled sites (don't auto-save these)
-      disabledSites: this.currentDisabledSites || [],
-    };
+    const settings = this.collectSettings(this.currentDisabledSites);
 
     try {
       await chrome.storage.sync.set({ settings });
@@ -148,17 +127,13 @@ class OptionsController {
     }
   }
 
-  private async saveSettings() {
-    // This method now only saves disabled sites
-    const settings: Settings = {
-      speedIncrement:
-        Number.parseFloat(this.elements.speedIncrement.value) || DEFAULT_SETTINGS.speedIncrement,
-      skipSeconds: Number.parseInt(this.elements.skipSeconds.value) || DEFAULT_SETTINGS.skipSeconds,
+  private collectSettings(disabledSites: string[]): Settings {
+    return normalizeSettings({
+      speedIncrement: Number.parseFloat(this.elements.speedIncrement.value),
+      skipSeconds: Number.parseInt(this.elements.skipSeconds.value),
       hideController: this.elements.hideController.checked,
       forceLastSavedSpeed: this.elements.forceLastSpeed.checked,
-      controllerOpacity:
-        Number.parseFloat(this.elements.controllerOpacity.value) ||
-        DEFAULT_SETTINGS.controllerOpacity,
+      controllerOpacity: Number.parseFloat(this.elements.controllerOpacity.value),
       shortcuts: {
         decreaseSpeed:
           this.elements.shortcuts.decreaseSpeed.value || DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
@@ -169,11 +144,16 @@ class OptionsController {
         skipForward:
           this.elements.shortcuts.skipForward.value || DEFAULT_SETTINGS.shortcuts.skipForward,
       },
-      disabledSites: this.elements.disabledSites.value
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0),
-    };
+      disabledSites,
+    });
+  }
+
+  private async saveSettings() {
+    const disabledSites = this.elements.disabledSites.value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    const settings = this.collectSettings(disabledSites);
 
     try {
       await chrome.storage.sync.set({ settings });

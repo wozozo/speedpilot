@@ -25,12 +25,17 @@ TEMP_DIR=$(mktemp -d)
 EXTENSION_NAME="speedpilot"
 VERSION=$(grep '"version"' manifest.json | cut -d'"' -f4)
 
-# Copy necessary files
-cp -r dist/ "$TEMP_DIR/"
-cp -r icons/ "$TEMP_DIR/"
-mkdir -p "$TEMP_DIR/src"
-cp -r src/popup/ "$TEMP_DIR/src/popup/"
-cp -r src/options/ "$TEMP_DIR/src/options/"
+# Copy necessary runtime files
+mkdir -p "$TEMP_DIR/dist"
+find dist -type f -name "*.js" | while read -r file; do
+    mkdir -p "$TEMP_DIR/$(dirname "$file")"
+    cp "$file" "$TEMP_DIR/$file"
+done
+find "$TEMP_DIR/dist" -type f -name "*.js" -exec perl -0pi -e 's/\n\/\/# sourceMappingURL=.*?\.map\s*\z/\n/' {} +
+mkdir -p "$TEMP_DIR/icons" "$TEMP_DIR/src/popup" "$TEMP_DIR/src/options"
+cp icons/*.png "$TEMP_DIR/icons/"
+cp src/popup/*.html src/popup/*.css "$TEMP_DIR/src/popup/"
+cp src/options/*.html src/options/*.css "$TEMP_DIR/src/options/"
 cp manifest.json "$TEMP_DIR/"
 
 # Create the zip file
@@ -50,7 +55,12 @@ if [ -f "${ZIP_NAME}" ]; then
     echo "✅ Extension packaged successfully: ${ZIP_NAME}"
     echo ""
     echo "📁 Package contents:"
-    unzip -l "${ZIP_NAME}" | grep -E "manifest.json|\.js|\.html|\.png" | head -20
+    unzip -l "${ZIP_NAME}" | grep -E "manifest.json|\.js|\.html|\.css|\.png" | head -40
+    echo ""
+    if unzip -l "${ZIP_NAME}" | grep -E "\.(ts|map)$|node_modules|coverage|src/tests"; then
+        echo "❌ Error: Package contains non-runtime files."
+        exit 1
+    fi
     echo ""
     echo "📏 Package size: $(du -h ${ZIP_NAME} | cut -f1)"
     echo ""

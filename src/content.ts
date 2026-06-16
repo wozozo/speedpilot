@@ -40,7 +40,76 @@ interface SpeedOverlay {
 }
 
 interface StorageData {
-  settings: Settings;
+  settings?: unknown;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function readNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function readShortcut(value: unknown, fallback: string): string {
+  return typeof value === "string" && /^[a-z0-9]$/i.test(value) ? value.toLowerCase() : fallback;
+}
+
+function readDisabledSites(value: unknown): string[] {
+  if (!Array.isArray(value)) return DEFAULT_SETTINGS.disabledSites;
+
+  return value
+    .filter((site): site is string => typeof site === "string")
+    .map((site) => site.trim())
+    .filter((site) => site.length > 0);
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function normalizeSettings(value: unknown): Settings {
+  const source = isRecord(value) ? value : {};
+  const shortcuts = isRecord(source.shortcuts) ? source.shortcuts : {};
+
+  return {
+    speedIncrement: clamp(
+      readNumber(source.speedIncrement, DEFAULT_SETTINGS.speedIncrement),
+      0.05,
+      1,
+    ),
+    skipSeconds: clamp(
+      Math.round(readNumber(source.skipSeconds, DEFAULT_SETTINGS.skipSeconds)),
+      1,
+      60,
+    ),
+    shortcuts: {
+      decreaseSpeed: readShortcut(
+        shortcuts.decreaseSpeed,
+        DEFAULT_SETTINGS.shortcuts.decreaseSpeed,
+      ),
+      increaseSpeed: readShortcut(
+        shortcuts.increaseSpeed,
+        DEFAULT_SETTINGS.shortcuts.increaseSpeed,
+      ),
+      skipBackward: readShortcut(shortcuts.skipBackward, DEFAULT_SETTINGS.shortcuts.skipBackward),
+      skipForward: readShortcut(shortcuts.skipForward, DEFAULT_SETTINGS.shortcuts.skipForward),
+    },
+    hideController:
+      typeof source.hideController === "boolean"
+        ? source.hideController
+        : DEFAULT_SETTINGS.hideController,
+    forceLastSavedSpeed:
+      typeof source.forceLastSavedSpeed === "boolean"
+        ? source.forceLastSavedSpeed
+        : DEFAULT_SETTINGS.forceLastSavedSpeed,
+    controllerOpacity: clamp(
+      readNumber(source.controllerOpacity, DEFAULT_SETTINGS.controllerOpacity),
+      0.1,
+      1,
+    ),
+    disabledSites: readDisabledSites(source.disabledSites),
+  };
 }
 
 class VideoController {
@@ -50,16 +119,13 @@ class VideoController {
   private observer: MutationObserver | null = null;
 
   constructor() {
-    console.log("SpeedPilot: Initializing...");
     this.init();
   }
 
   private async init() {
     await this.loadSettings();
 
-    // Check if the current site is disabled
     if (this.isSiteDisabled()) {
-      console.log("SpeedPilot: Extension is disabled on this site");
       return;
     }
 
@@ -84,16 +150,14 @@ class VideoController {
     try {
       const data = await chrome.storage.sync.get("settings");
       const storageData = data as StorageData;
-      if (storageData.settings) {
-        this.settings = storageData.settings;
-      }
+      this.settings = normalizeSettings(storageData.settings);
     } catch (error) {
       console.error("SpeedPilot: Failed to load settings", error);
     }
 
     chrome.storage.onChanged.addListener((changes) => {
       if (changes.settings) {
-        this.settings = changes.settings.newValue || DEFAULT_SETTINGS;
+        this.settings = normalizeSettings(changes.settings.newValue);
       }
     });
   }
@@ -101,10 +165,8 @@ class VideoController {
   private setupVideoObserver() {
     const observeVideos = () => {
       const videos = document.querySelectorAll("video");
-      console.log("SpeedPilot: Found", videos.length, "video(s)");
       if (videos.length > 0) {
         this.video = videos[0] as HTMLVideoElement;
-        console.log("SpeedPilot: Video element attached");
         this.detectInitialPlaybackRate();
         this.createSpeedOverlay();
       }
@@ -120,7 +182,6 @@ class VideoController {
       // Check if overlay was removed and recreate it
       if (this.video && this.speedOverlay) {
         if (!document.contains(this.speedOverlay.element)) {
-          console.log("SpeedPilot: Overlay was removed, recreating...");
           this.speedOverlay = null;
           this.createSpeedOverlay();
         }
@@ -146,7 +207,6 @@ class VideoController {
     // Listen for video play event to ensure overlay exists
     this.video.addEventListener("play", () => {
       if (!this.speedOverlay || !document.contains(this.speedOverlay.element)) {
-        console.log("SpeedPilot: Recreating overlay on play event");
         this.speedOverlay = null;
         this.createSpeedOverlay();
       }
@@ -155,7 +215,6 @@ class VideoController {
     // Wait a bit for the video to load and apply any default speed
     setTimeout(() => {
       if (this.video && this.video.playbackRate !== 1) {
-        console.log("SpeedPilot: Detected initial playback rate:", this.video.playbackRate);
         if (this.speedOverlay) {
           this.updateSpeedDisplay(false);
         }
@@ -214,7 +273,6 @@ class VideoController {
       // Periodically check if overlay still exists (for aggressive DOM cleaners)
       checkIntervalId = window.setInterval(() => {
         if (!document.contains(overlay)) {
-          console.log("SpeedPilot: Overlay removed by site, recreating...");
           clearInterval(checkIntervalId);
           this.speedOverlay = null;
           this.createSpeedOverlay();
@@ -267,9 +325,6 @@ class VideoController {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
-
-      // Debug: Log key press
-      console.log("SpeedPilot: Key pressed:", event.key, "Code:", event.code);
 
       const key = event.key.toLowerCase();
 
@@ -347,7 +402,5 @@ export { VideoController };
 
 // Only run in production (not in test environment)
 if (typeof process === "undefined" || process.env.NODE_ENV !== "test") {
-  console.log("SpeedPilot: Content script loaded");
   const _controller = new VideoController();
-  console.log("SpeedPilot: Controller created");
 }

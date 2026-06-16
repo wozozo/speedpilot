@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { KeyboardShortcuts, Settings } from "../types/settings";
-import { DEFAULT_SETTINGS } from "../types/settings";
+import { DEFAULT_SETTINGS, normalizeSettings } from "../types/settings";
 
 describe("Settings", () => {
   describe("DEFAULT_SETTINGS", () => {
@@ -192,6 +192,64 @@ describe("Settings", () => {
       expect(updatedSettings.speedIncrement).toBe(0.3);
       expect(updatedSettings.shortcuts.decreaseSpeed).toBe("1");
       expect(updatedSettings.disabledSites).toEqual(["test.com"]);
+    });
+  });
+
+  describe("Settings Normalization", () => {
+    it("should fill missing settings fields with defaults", () => {
+      expect(
+        normalizeSettings({
+          speedIncrement: 0.5,
+          shortcuts: {
+            decreaseSpeed: "q",
+          },
+        }),
+      ).toEqual({
+        ...DEFAULT_SETTINGS,
+        speedIncrement: 0.5,
+        shortcuts: {
+          ...DEFAULT_SETTINGS.shortcuts,
+          decreaseSpeed: "q",
+        },
+      });
+    });
+
+    it("should clamp numeric settings to UI ranges", () => {
+      const settings = normalizeSettings({
+        ...DEFAULT_SETTINGS,
+        speedIncrement: 2,
+        skipSeconds: 100,
+        controllerOpacity: 0,
+      });
+
+      expect(settings.speedIncrement).toBe(1);
+      expect(settings.skipSeconds).toBe(60);
+      expect(settings.controllerOpacity).toBe(0.1);
+    });
+
+    it("should ignore malformed settings values", () => {
+      expect(
+        normalizeSettings({
+          speedIncrement: "fast",
+          skipSeconds: Number.NaN,
+          shortcuts: {
+            decreaseSpeed: "shift",
+            increaseSpeed: "W",
+          },
+          hideController: "yes",
+          forceLastSavedSpeed: true,
+          controllerOpacity: null,
+          disabledSites: ["  .*example\\.com.*  ", "", 42],
+        }),
+      ).toEqual({
+        ...DEFAULT_SETTINGS,
+        shortcuts: {
+          ...DEFAULT_SETTINGS.shortcuts,
+          increaseSpeed: "w",
+        },
+        forceLastSavedSpeed: true,
+        disabledSites: [".*example\\.com.*"],
+      });
     });
   });
 });
