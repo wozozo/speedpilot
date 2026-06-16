@@ -1,5 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+function setVideoRect(
+  video: HTMLVideoElement,
+  rect: { left?: number; top?: number; width: number; height: number },
+) {
+  const left = rect.left ?? 0;
+  const top = rect.top ?? 0;
+  const width = rect.width;
+  const height = rect.height;
+
+  vi.spyOn(video, "getBoundingClientRect").mockReturnValue({
+    x: left,
+    y: top,
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+    toJSON: () => ({}),
+  } as DOMRect);
+}
+
 describe("VideoController", () => {
   let videoElement: HTMLVideoElement;
   let VideoController: typeof import("../content").VideoController;
@@ -14,6 +36,7 @@ describe("VideoController", () => {
     videoElement.src = "test.mp4";
     videoElement.playbackRate = 1; // Ensure default playback rate
     document.body.appendChild(videoElement);
+    setVideoRect(videoElement, { width: 640, height: 360 });
 
     // Set a proper URL to avoid "Extension is disabled on this site"
     Object.defineProperty(window, "location", {
@@ -121,11 +144,105 @@ describe("VideoController", () => {
 
       const newVideo = document.createElement("video");
       newVideo.src = "new-test.mp4";
+      setVideoRect(newVideo, { width: 640, height: 360 });
       document.body.appendChild(newVideo);
 
       await vi.waitFor(() => {
         expect(document.querySelectorAll("video").length).toBe(2);
       });
+    });
+
+    it("should control the largest visible video even when a sidebar video appears first", async () => {
+      setVideoRect(videoElement, { left: 700, width: 160, height: 90 });
+
+      const mainVideo = document.createElement("video");
+      mainVideo.src = "main.mp4";
+      mainVideo.playbackRate = 1;
+      setVideoRect(mainVideo, { width: 800, height: 450 });
+      document.body.appendChild(mainVideo);
+
+      new VideoController();
+
+      await vi.waitFor(() => {
+        expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
+      });
+
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+
+      await vi.waitFor(() => {
+        expect(mainVideo.playbackRate).toBeGreaterThan(1);
+      });
+      expect(videoElement.playbackRate).toBe(1);
+    });
+
+    it("should keep controlling the main video after a small hover preview is added", async () => {
+      controller = new VideoController();
+
+      await vi.waitFor(() => {
+        expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
+      });
+
+      const previewVideo = document.createElement("video");
+      previewVideo.src = "preview.mp4";
+      previewVideo.playbackRate = 1;
+      setVideoRect(previewVideo, { left: 700, width: 160, height: 90 });
+      document.body.prepend(previewVideo);
+
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+
+      await vi.waitFor(() => {
+        expect(videoElement.playbackRate).toBeGreaterThan(1);
+      });
+      expect(previewVideo.playbackRate).toBe(1);
+    });
+
+    it("should switch to the remaining visible video when the selected video is removed", async () => {
+      const fallbackVideo = document.createElement("video");
+      fallbackVideo.src = "fallback.mp4";
+      fallbackVideo.playbackRate = 1;
+      setVideoRect(fallbackVideo, { width: 320, height: 180 });
+      document.body.appendChild(fallbackVideo);
+
+      controller = new VideoController();
+
+      await vi.waitFor(() => {
+        expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
+      });
+
+      videoElement.remove();
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+
+      await vi.waitFor(() => {
+        expect(fallbackVideo.playbackRate).toBeGreaterThan(1);
+      });
+    });
+
+    it("should ignore hidden and zero-size videos", async () => {
+      videoElement.style.display = "none";
+
+      const zeroSizeVideo = document.createElement("video");
+      zeroSizeVideo.src = "zero.mp4";
+      setVideoRect(zeroSizeVideo, { width: 0, height: 0 });
+      document.body.appendChild(zeroSizeVideo);
+
+      const visibleVideo = document.createElement("video");
+      visibleVideo.src = "visible.mp4";
+      visibleVideo.playbackRate = 1;
+      setVideoRect(visibleVideo, { width: 480, height: 270 });
+      document.body.appendChild(visibleVideo);
+
+      new VideoController();
+
+      await vi.waitFor(() => {
+        expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
+      });
+
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+
+      await vi.waitFor(() => {
+        expect(visibleVideo.playbackRate).toBeGreaterThan(1);
+      });
+      expect(zeroSizeVideo.playbackRate).toBe(1);
     });
   });
 

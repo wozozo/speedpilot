@@ -163,21 +163,10 @@ class VideoController {
   }
 
   private setupVideoObserver() {
-    const observeVideos = () => {
-      const videos = document.querySelectorAll("video");
-      if (videos.length > 0) {
-        this.video = videos[0] as HTMLVideoElement;
-        this.detectInitialPlaybackRate();
-        this.createSpeedOverlay();
-      }
-    };
-
-    observeVideos();
+    this.refreshSelectedVideo();
 
     this.observer = new MutationObserver(() => {
-      if (!this.video || !document.contains(this.video)) {
-        observeVideos();
-      }
+      this.refreshSelectedVideo();
 
       // Check if overlay was removed and recreate it
       if (this.video && this.speedOverlay) {
@@ -192,6 +181,63 @@ class VideoController {
       childList: true,
       subtree: true,
     });
+  }
+
+  private refreshSelectedVideo() {
+    const selectedVideo = this.selectBestVideo();
+    if (!selectedVideo) {
+      this.removeSpeedOverlay();
+      this.video = null;
+      return;
+    }
+
+    if (selectedVideo === this.video) {
+      if (!this.speedOverlay || !document.contains(this.speedOverlay.element)) {
+        this.speedOverlay = null;
+        this.createSpeedOverlay();
+      }
+      return;
+    }
+
+    this.removeSpeedOverlay();
+    this.video = selectedVideo;
+    this.detectInitialPlaybackRate();
+    this.createSpeedOverlay();
+  }
+
+  private selectBestVideo(): HTMLVideoElement | null {
+    const videos = Array.from(document.querySelectorAll("video"));
+    let bestVideo: HTMLVideoElement | null = null;
+    let bestScore = 0;
+
+    for (const video of videos) {
+      const score = this.getVideoScore(video);
+      if (score > bestScore) {
+        bestVideo = video;
+        bestScore = score;
+      }
+    }
+
+    return bestVideo;
+  }
+
+  private getVideoScore(video: HTMLVideoElement): number {
+    if (!document.contains(video)) return 0;
+
+    const style = window.getComputedStyle(video);
+    if (style.display === "none" || style.visibility === "hidden") return 0;
+
+    const rect = video.getBoundingClientRect();
+    if (rect.width <= 1 || rect.height <= 1) return 0;
+
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const visibleWidth = Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0);
+    const visibleHeight = Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+    if (visibleWidth <= 0 || visibleHeight <= 0) return 0;
+
+    const visibleArea = visibleWidth * visibleHeight;
+    return video.paused ? visibleArea : visibleArea * 1.05;
   }
 
   private detectInitialPlaybackRate() {
@@ -320,11 +366,12 @@ class VideoController {
 
   private setupKeyboardListeners() {
     document.addEventListener("keydown", (event) => {
-      if (!this.video) return;
-
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
+
+      this.refreshSelectedVideo();
+      if (!this.video) return;
 
       const key = event.key.toLowerCase();
 
@@ -381,19 +428,24 @@ class VideoController {
     this.video.currentTime = targetTime;
   }
 
+  private removeSpeedOverlay() {
+    if (!this.speedOverlay) return;
+
+    if (this.speedOverlay.checkIntervalId) {
+      clearInterval(this.speedOverlay.checkIntervalId);
+    }
+    if (this.speedOverlay.timeoutId) {
+      clearTimeout(this.speedOverlay.timeoutId);
+    }
+    this.speedOverlay.element.remove();
+    this.speedOverlay = null;
+  }
+
   public destroy() {
     if (this.observer) {
       this.observer.disconnect();
     }
-    if (this.speedOverlay) {
-      if (this.speedOverlay.checkIntervalId) {
-        clearInterval(this.speedOverlay.checkIntervalId);
-      }
-      if (this.speedOverlay.timeoutId) {
-        clearTimeout(this.speedOverlay.timeoutId);
-      }
-      this.speedOverlay.element.remove();
-    }
+    this.removeSpeedOverlay();
   }
 }
 
