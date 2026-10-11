@@ -8,6 +8,10 @@
 
 SpeedPilot works on YouTube, Netflix, and other sites that use standard video elements. It adds simple shortcuts for changing playback speed and skipping through videos, plus an options page for customizing behavior.
 
+## Install
+
+Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/speedpilot-video-speed-co/agifcpondcamakkdbeanlojchpdakngk).
+
 ## Features
 
 - Increase or decrease playback speed

@@ -11,7 +11,7 @@ rm -f speedpilot-*.zip
 
 # Build TypeScript
 echo "Compiling TypeScript..."
-npm run build
+pnpm build
 
 # Check if build was successful
 if [ ! -d "dist" ]; then

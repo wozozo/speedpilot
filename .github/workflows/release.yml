@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 12
+
+    - name: Use Node.js 24
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24.x'
+        cache: 'pnpm'
+
+    - name: Check version matches tag
+      run: |
+        TAG_VERSION="${GITHUB_REF_NAME#v}"
+        MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+        PACKAGE_VERSION=$(node -p "require('./package.json').version")
+        if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ] || [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+          echo "::error::Tag $GITHUB_REF_NAME does not match manifest.json ($MANIFEST_VERSION) / package.json ($PACKAGE_VERSION)"
+          exit 1
+        fi
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run linter
+      run: pnpm check
+
+    - name: Run tests
+      run: pnpm test
+
+    - name: Package
+      run: pnpm package
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh release create "$GITHUB_REF_NAME" "speedpilot-$GITHUB_REF_NAME.zip" --title "$GITHUB_REF_NAME" --generate-notes

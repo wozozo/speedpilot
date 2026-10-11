@@ -9,14 +9,14 @@ A Chrome extension that enhances video playback control on YouTube and other vid
 ## Commands
 
 ### Build and Development
-- `npm run build` - Compile TypeScript to JavaScript (outputs to dist/)
-- `npm run watch` - Watch mode for development (auto-compile on changes)
-- `npm run format` - Format code using Biome
-- `npm run lint` - Lint code using Biome
-- `npm run check` - Combined lint and format check
+- `pnpm build` - Compile TypeScript to JavaScript (outputs to dist/)
+- `pnpm watch` - Watch mode for development (auto-compile on changes)
+- `pnpm format` - Format code using Biome
+- `pnpm lint` - Lint code using Biome
+- `pnpm check` - Combined lint and format check
 
 ### Loading the Extension
-1. Run `npm run build` to compile
+1. Run `pnpm build` to compile
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable Developer mode
 4. Click "Load unpacked" and select the speedpilot directory

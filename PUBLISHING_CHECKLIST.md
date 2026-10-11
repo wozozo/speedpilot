@@ -5,15 +5,15 @@
 - Version: `1.0.0`
 - Visibility: Public
 - Category: Productivity
-- Package command: `npm run package`
+- Package command: `pnpm package`
 - Package output: `speedpilot-v1.0.0.zip`
 
 ## Pre-Submission Validation
 
-- [ ] Run `npm run check`
-- [ ] Run `npm test`
-- [ ] Run `npm run build`
-- [ ] Run `npm run package`
+- [ ] Run `pnpm check`
+- [ ] Run `pnpm test`
+- [ ] Run `pnpm build`
+- [ ] Run `pnpm package`
 - [ ] Confirm `manifest.json` is at the ZIP root
 - [ ] Confirm ZIP includes runtime `.js`, popup/options HTML/CSS, and icons
 - [ ] Confirm ZIP excludes `.ts`, `.map`, `.d.ts`, `node_modules`, `coverage`, tests, docs, and source-only files
@@ -21,10 +21,10 @@
 Useful commands:
 
 ```bash
-npm run check
-npm test
-npm run build
-npm run package
+pnpm check
+pnpm test
+pnpm build
+pnpm package
 unzip -l speedpilot-v1.0.0.zip
 ```
 
@@ -59,7 +59,7 @@ Permission justification:
 
 ## Manual Acceptance Test
 
-- [ ] Load unpacked extension after `npm run build`
+- [ ] Load unpacked extension after `pnpm build`
 - [ ] HTML5 video: `D` increases speed
 - [ ] HTML5 video: `S` decreases speed
 - [ ] HTML5 video: `X` skips forward
@@ -83,7 +83,13 @@ Permission justification:
 
 ## After Publication
 
-- [ ] Add the Chrome Web Store URL to `README.md`
-- [ ] Create a matching Git tag or GitHub Release
+- [x] Add the Chrome Web Store URL to `README.md`
 - [ ] Monitor review feedback and GitHub issues
 - [ ] For updates, increment `manifest.json` and `package.json` versions before packaging
+
+## Releasing an Update
+
+1. Bump `version` in both `manifest.json` and `package.json` (e.g. `1.0.1`) and commit to `main`.
+2. Tag and push: `git tag v1.0.1 && git push origin v1.0.1`.
+3. The `Release` workflow checks that the tag matches both versions, runs `pnpm check` / `pnpm test` / `pnpm package`, and creates a GitHub Release with `speedpilot-v1.0.1.zip` attached.
+4. Download the ZIP from the GitHub Release and upload it in the Chrome Web Store developer console.
