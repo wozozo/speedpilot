@@ -47,9 +47,6 @@ describe("VideoController", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
 
-    // Clear localStorage to ensure no saved speeds affect tests
-    localStorage.clear();
-
     // Import fresh module
     const contentModule = await import("../content");
     VideoController = contentModule.VideoController;
@@ -67,7 +64,7 @@ describe("VideoController", () => {
 
   describe("Initialization", () => {
     it("should initialize when video element exists", async () => {
-      const controller = new VideoController();
+      controller = new VideoController();
       await vi.waitFor(() => {
         expect(controller).toBeDefined();
       });
@@ -98,7 +95,7 @@ describe("VideoController", () => {
         return Promise.resolve(settings);
       });
 
-      new VideoController();
+      controller = new VideoController();
       await vi.waitFor(() => {
         expect(mockGet).toHaveBeenCalledWith("settings");
       });
@@ -124,7 +121,7 @@ describe("VideoController", () => {
         writable: true,
       });
 
-      const controller = new VideoController();
+      controller = new VideoController();
       await vi.waitFor(() => {
         expect(controller).toBeDefined();
       });
@@ -133,14 +130,14 @@ describe("VideoController", () => {
 
   describe("Video Detection", () => {
     it("should detect video elements on page load", async () => {
-      new VideoController();
+      controller = new VideoController();
       await vi.waitFor(() => {
         expect(document.querySelector("video")).toBeTruthy();
       });
     });
 
     it("should detect dynamically added video elements", async () => {
-      new VideoController();
+      controller = new VideoController();
 
       const newVideo = document.createElement("video");
       newVideo.src = "new-test.mp4";
@@ -161,7 +158,7 @@ describe("VideoController", () => {
       setVideoRect(mainVideo, { width: 800, height: 450 });
       document.body.appendChild(mainVideo);
 
-      new VideoController();
+      controller = new VideoController();
 
       await vi.waitFor(() => {
         expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
@@ -231,7 +228,7 @@ describe("VideoController", () => {
       setVideoRect(visibleVideo, { width: 480, height: 270 });
       document.body.appendChild(visibleVideo);
 
-      new VideoController();
+      controller = new VideoController();
 
       await vi.waitFor(() => {
         expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
@@ -289,15 +286,22 @@ describe("VideoController", () => {
       });
     });
 
-    it("should not decrease speed below 0.25", async () => {
-      videoElement.playbackRate = 0.25;
-
-      const event = new KeyboardEvent("keydown", { key: "s" });
-      document.dispatchEvent(event);
-
+    it("should clamp speed between 0.25 and 16 and round to 2 decimals", async () => {
       await vi.waitFor(() => {
-        expect(videoElement.playbackRate).toBe(0.25);
+        expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
       });
+
+      videoElement.playbackRate = 0.25;
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "s" }));
+      expect(videoElement.playbackRate).toBe(0.25);
+
+      videoElement.playbackRate = 16;
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+      expect(videoElement.playbackRate).toBe(16);
+
+      videoElement.playbackRate = 1.1000000000000001;
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+      expect(videoElement.playbackRate).toBe(1.35);
     });
 
     it("should skip backward on skip backward key press", async () => {
@@ -397,18 +401,45 @@ describe("VideoController", () => {
       expect(videoElement.currentTime).toBe(30);
     });
 
-    it("should ignore keyboard events when typing in input fields", async () => {
+    it("should ignore keyboard events when typing in input fields or with modifiers", async () => {
       const input = document.createElement("input");
-      document.body.appendChild(input);
-      input.focus();
+      const editable = document.createElement("div");
+      editable.contentEditable = "true";
+      // jsdom does not implement isContentEditable
+      Object.defineProperty(editable, "isContentEditable", { value: true });
+      document.body.append(input, editable);
+      await vi.waitFor(() => {
+        expect(document.querySelector(".speedpilot-overlay")).toBeTruthy();
+      });
 
       videoElement.playbackRate = 1;
 
-      const event = new KeyboardEvent("keydown", { key: "d" });
-      input.dispatchEvent(event);
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "d", bubbles: true }));
+      editable.dispatchEvent(new KeyboardEvent("keydown", { key: "d", bubbles: true }));
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d", metaKey: true }));
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d", ctrlKey: true }));
 
+      expect(videoElement.playbackRate).toBe(1);
+    });
+
+    it("should remember and restore speed per site when forceLastSavedSpeed is enabled", async () => {
+      controller.destroy();
+      document.querySelector(".speedpilot-overlay")?.remove();
+      vi.mocked(chrome.storage.sync.get).mockResolvedValueOnce({
+        settings: { ...DEFAULT_SETTINGS, forceLastSavedSpeed: true },
+      } as never);
+      vi.mocked(chrome.storage.local.get).mockResolvedValueOnce({
+        siteSpeeds: { "example.com": 1.75, "other.com": 3 },
+      } as never);
+
+      controller = new VideoController();
       await vi.waitFor(() => {
-        expect(videoElement.playbackRate).toBe(1);
+        expect(videoElement.playbackRate).toBe(1.75);
+      });
+
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({
+        siteSpeeds: { "example.com": 2, "other.com": 3 },
       });
     });
   });
@@ -524,7 +555,7 @@ describe("VideoController", () => {
 
   describe("Settings Updates", () => {
     it("should update settings when chrome storage changes", async () => {
-      new VideoController();
+      controller = new VideoController();
 
       // Wait for initial setup
       await vi.waitFor(() => {
@@ -591,7 +622,7 @@ describe("VideoController", () => {
         return Promise.resolve(settings);
       });
 
-      new VideoController();
+      controller = new VideoController();
 
       await vi.waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -609,7 +640,7 @@ describe("VideoController", () => {
       const mockGet = vi.mocked(chrome.storage.sync.get);
       mockGet.mockRejectedValue(new Error("Storage error"));
 
-      new VideoController();
+      controller = new VideoController();
 
       await vi.waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(
