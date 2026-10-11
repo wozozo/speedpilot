@@ -18,7 +18,7 @@ Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/spe
 - Skip forward or backward
 - Show a small speed overlay on the video
 - Customize shortcut keys, speed step, and skip duration
-- Keep the last used speed for new videos
+- Remember the last used speed per site
 - Disable the extension on selected sites with regex patterns
 
 ## Default Shortcuts

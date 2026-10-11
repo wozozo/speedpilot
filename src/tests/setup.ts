@@ -33,6 +33,10 @@ Object.defineProperty(window, "chrome", {
           return Promise.resolve();
         }),
       },
+      local: {
+        get: vi.fn(() => Promise.resolve({})),
+        set: vi.fn(() => Promise.resolve()),
+      },
       onChanged: {
         addListener: vi.fn(),
       },

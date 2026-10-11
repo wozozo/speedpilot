@@ -43,6 +43,11 @@ interface StorageData {
   settings?: unknown;
 }
 
+type SiteSpeeds = Record<string, number>;
+
+const MIN_SPEED = 0.25;
+const MAX_SPEED = 16;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -66,6 +71,18 @@ function readDisabledSites(value: unknown): string[] {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function readSiteSpeeds(value: unknown): SiteSpeeds {
+  if (!isRecord(value)) return {};
+
+  const siteSpeeds: SiteSpeeds = {};
+  for (const [host, speed] of Object.entries(value)) {
+    if (typeof speed === "number" && Number.isFinite(speed)) {
+      siteSpeeds[host] = clamp(speed, MIN_SPEED, MAX_SPEED);
+    }
+  }
+  return siteSpeeds;
 }
 
 function normalizeSettings(value: unknown): Settings {
@@ -114,9 +131,11 @@ function normalizeSettings(value: unknown): Settings {
 
 class VideoController {
   private settings: Settings = DEFAULT_SETTINGS;
+  private siteSpeeds: SiteSpeeds = {};
   private speedOverlay: SpeedOverlay | null = null;
   private video: HTMLVideoElement | null = null;
   private observer: MutationObserver | null = null;
+  private destroyed = false;
 
   constructor() {
     this.init();
@@ -125,7 +144,7 @@ class VideoController {
   private async init() {
     await this.loadSettings();
 
-    if (this.isSiteDisabled()) {
+    if (this.destroyed || this.isSiteDisabled()) {
       return;
     }
 
@@ -155,9 +174,19 @@ class VideoController {
       console.error("SpeedPilot: Failed to load settings", error);
     }
 
-    chrome.storage.onChanged.addListener((changes) => {
-      if (changes.settings) {
+    try {
+      const data = await chrome.storage.local.get("siteSpeeds");
+      this.siteSpeeds = readSiteSpeeds(data.siteSpeeds);
+    } catch (error) {
+      console.error("SpeedPilot: Failed to load site speeds", error);
+    }
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === "sync" && changes.settings) {
         this.settings = normalizeSettings(changes.settings.newValue);
+      }
+      if (areaName === "local" && changes.siteSpeeds) {
+        this.siteSpeeds = readSiteSpeeds(changes.siteSpeeds.newValue);
       }
     });
   }
@@ -335,9 +364,9 @@ class VideoController {
 
     // If forceLastSavedSpeed is enabled, set the video speed
     if (this.settings.forceLastSavedSpeed && this.video) {
-      const savedSpeed = localStorage.getItem("speedpilot_last_speed");
+      const savedSpeed = this.siteSpeeds[location.hostname];
       if (savedSpeed) {
-        this.video.playbackRate = Number.parseFloat(savedSpeed);
+        this.video.playbackRate = savedSpeed;
         this.updateSpeedDisplay(false);
       }
     }
@@ -347,7 +376,7 @@ class VideoController {
     if (!this.speedOverlay || !this.video) return;
 
     const speed = this.video.playbackRate;
-    this.speedOverlay.element.textContent = `${speed}x`;
+    this.speedOverlay.element.textContent = `${Number(speed.toFixed(2))}x`;
 
     if (showImmediately) {
       this.speedOverlay.element.style.opacity = "1";
@@ -365,42 +394,59 @@ class VideoController {
   }
 
   private setupKeyboardListeners() {
-    document.addEventListener("keydown", (event) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      this.refreshSelectedVideo();
-      if (!this.video) return;
-
-      const key = event.key.toLowerCase();
-
-      if (key === this.settings.shortcuts.decreaseSpeed) {
-        event.preventDefault();
-        this.changeSpeed(-this.settings.speedIncrement);
-      } else if (key === this.settings.shortcuts.increaseSpeed) {
-        event.preventDefault();
-        this.changeSpeed(this.settings.speedIncrement);
-      } else if (key === this.settings.shortcuts.skipBackward) {
-        event.preventDefault();
-        this.skip(-this.settings.skipSeconds);
-      } else if (key === this.settings.shortcuts.skipForward) {
-        event.preventDefault();
-        this.skip(this.settings.skipSeconds);
-      }
-    });
+    document.addEventListener("keydown", this.handleKeydown);
   }
+
+  private handleKeydown = (event: KeyboardEvent) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    const target = event.target;
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement ||
+      (target instanceof HTMLElement && target.isContentEditable)
+    ) {
+      return;
+    }
+
+    this.refreshSelectedVideo();
+    if (!this.video) return;
+
+    const key = event.key.toLowerCase();
+
+    if (key === this.settings.shortcuts.decreaseSpeed) {
+      event.preventDefault();
+      this.changeSpeed(-this.settings.speedIncrement);
+    } else if (key === this.settings.shortcuts.increaseSpeed) {
+      event.preventDefault();
+      this.changeSpeed(this.settings.speedIncrement);
+    } else if (key === this.settings.shortcuts.skipBackward) {
+      event.preventDefault();
+      this.skip(-this.settings.skipSeconds);
+    } else if (key === this.settings.shortcuts.skipForward) {
+      event.preventDefault();
+      this.skip(this.settings.skipSeconds);
+    }
+  };
 
   private changeSpeed(delta: number) {
     if (!this.video) return;
 
-    const newSpeed = Math.max(0.25, Math.min(4, this.video.playbackRate + delta));
+    const newSpeed = clamp(
+      Math.round((this.video.playbackRate + delta) * 100) / 100,
+      MIN_SPEED,
+      MAX_SPEED,
+    );
     this.video.playbackRate = newSpeed;
     this.updateSpeedDisplay();
 
-    // Save the speed if forceLastSavedSpeed is enabled
+    // Remember the speed per site if forceLastSavedSpeed is enabled
     if (this.settings.forceLastSavedSpeed) {
-      localStorage.setItem("speedpilot_last_speed", String(newSpeed));
+      this.siteSpeeds = { ...this.siteSpeeds, [location.hostname]: newSpeed };
+      chrome.storage.local.set({ siteSpeeds: this.siteSpeeds }).catch((error) => {
+        console.error("SpeedPilot: Failed to save site speed", error);
+      });
     }
   }
 
@@ -442,6 +488,8 @@ class VideoController {
   }
 
   public destroy() {
+    this.destroyed = true;
+    document.removeEventListener("keydown", this.handleKeydown);
     if (this.observer) {
       this.observer.disconnect();
     }
